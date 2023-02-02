@@ -3,12 +3,16 @@ package com.example.memotest.service;
 import com.example.memotest.dto.MemoCreateRequest;
 import com.example.memotest.dto.MemoResponse;
 import com.example.memotest.dto.MemoUpdateRequest;
+import com.example.memotest.dto.PageRequestDto;
 import com.example.memotest.entity.Memo;
 import com.example.memotest.exception.ErrorCode;
 import com.example.memotest.exception.MemoAPIException;
 import com.example.memotest.repository.MemoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +42,29 @@ public class MemoServiceImpl implements MemoService{
 
     @Transactional(readOnly = true)
     @Override
+    public Page<MemoResponse> list1(Pageable pageable) {
+
+        Page<MemoResponse> memoResponsePage = memoRepository.findAll(pageable).map(MemoResponse::toDto);
+        log.info("memoResponsePage: {}", memoResponsePage);
+
+        return memoResponsePage;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<MemoResponse> list2(PageRequestDto pageRequestDto) {
+
+        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize(),
+                Sort.by(Sort.Direction.DESC, "id"));
+
+        Page<MemoResponse> memoResponsePage = memoRepository.getMemoPage(pageRequestDto, pageable).map(MemoResponse::toDto);
+        log.info("memoResponsePage: {}", memoResponsePage);
+        return memoResponsePage;
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
     public MemoResponse getById(Long memoId) {
 
         Memo memo = memoRepository.findById(memoId)
@@ -61,7 +88,8 @@ public class MemoServiceImpl implements MemoService{
         Memo findMemo = memoRepository.findById(memoId)
                 .orElseThrow(() -> new RuntimeException("엔티티 없음"));
 
-        findMemo.updateMemo(memoUpdateRequest);
+        memoRepository.save(findMemo); // merge
+        findMemo.updateMemo(memoUpdateRequest); // dirty chekcing
 
     }
 
