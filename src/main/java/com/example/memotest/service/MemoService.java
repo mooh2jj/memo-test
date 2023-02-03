@@ -3,7 +3,7 @@ package com.example.memotest.service;
 import com.example.memotest.dto.MemoCreateRequest;
 import com.example.memotest.dto.MemoResponse;
 import com.example.memotest.dto.MemoUpdateRequest;
-import com.example.memotest.dto.PageRequestDto;
+import com.example.memotest.common.page.PageRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

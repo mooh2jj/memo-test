@@ -1,15 +1,11 @@
-package com.example.memotest.dto;
+package com.example.memotest.common.page;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 @Data
-@Builder
-@AllArgsConstructor
 public class PageRequestDto {
     private int page;
     private int size;

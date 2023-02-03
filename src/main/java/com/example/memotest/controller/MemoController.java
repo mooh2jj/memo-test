@@ -3,7 +3,7 @@ package com.example.memotest.controller;
 import com.example.memotest.dto.MemoCreateRequest;
 import com.example.memotest.dto.MemoResponse;
 import com.example.memotest.dto.MemoUpdateRequest;
-import com.example.memotest.dto.PageRequestDto;
+import com.example.memotest.common.page.PageRequestDto;
 import com.example.memotest.service.MemoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
