@@ -4,27 +4,29 @@ import com.example.memotest.common.page.PageRequestDto;
 import com.example.memotest.entity.Memo;
 import com.example.memotest.entity.QMemo;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
-
-import javax.persistence.EntityManager;
 
 import java.util.List;
 
 import static com.example.memotest.entity.QMemo.memo;
 
+@Slf4j
+@RequiredArgsConstructor
 public class MemoRepositoryCustomImpl implements MemoRepositoryCustom {
 
-    private JPAQueryFactory queryFactory;
+    private final JPAQueryFactory queryFactory;
 
-    public MemoRepositoryCustomImpl(EntityManager em) {
-        this.queryFactory = new JPAQueryFactory(em);
-    }
+//    public MemoRepositoryCustomImpl(EntityManager em) {
+//        this.queryFactory = new JPAQueryFactory(em);
+//    }
 
 
     @Override
@@ -32,17 +34,25 @@ public class MemoRepositoryCustomImpl implements MemoRepositoryCustom {
 
         QMemo memo = QMemo.memo;
 
-        QueryResults<Memo> results = queryFactory
+        List<Memo> memoList = queryFactory
                 .selectFrom(memo)
                 .where(getSearch(pageRequestDto))
-//                .orderBy(memo.id.desc())
+                .orderBy(memo.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetchResults();
+                .fetch();
 
-        List<Memo> memoList = results.getResults();
-        long total = results.getTotal();
-        return new PageImpl<>(memoList, pageable, total);
+        log.info("memoList: {}", memoList);
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(memo.count())
+                .from(memo)
+                .where(getSearch(pageRequestDto))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
+
+//        return new PageImpl<>(memoList, pageable, countQuery.fetchCount());
+        return PageableExecutionUtils.getPage(memoList, pageable, countQuery::fetchCount);
     }
 
     private BooleanBuilder getSearch(PageRequestDto pageRequestDto) {
@@ -54,18 +64,23 @@ public class MemoRepositoryCustomImpl implements MemoRepositoryCustom {
         booleanBuilder.and(expression);
 
         // 검색조건이 없는 경우
-        if (StringUtils.isEmpty(type)) {
-            return booleanBuilder;
-        }
+//        if (StringUtils.isEmpty(type)) {
+//            return booleanBuilder;
+//        }
+
+//        if(type.contains("t")){
+//            conditionBuilder.or(memo.title.contains(keyword));
+//        }
+//        if(type.contains("c")){
+//            conditionBuilder.or(memo.content.contains(keyword));
+//        }
 
         // 검색 조건이 있는 경우
         BooleanBuilder conditionBuilder = new BooleanBuilder();
 
-        if(type.contains("t")){
-            conditionBuilder.or(memo.title.contains(keyword));
-        }
-        if(type.contains("c")){
-            conditionBuilder.or(memo.content.contains(keyword));
+        if (!StringUtils.isEmpty(keyword)) {
+            conditionBuilder.or(memo.title.contains(keyword))
+                    .or(memo.content.contains(keyword));
         }
 
         //모든 조건 통합

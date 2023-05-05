@@ -1,7 +1,6 @@
 package com.example.memotest.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -30,6 +30,23 @@ public class MemoExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorDetails, mapToStatus(errorDetails.getErrorCode()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedExceptionInternal(
+            MemoAPIException ex,
+            WebRequest request) {
+        log.error("AccessDeniedException: ",ex);
+
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .dateTime(LocalDateTime.now())
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(ex.getErrorCode())
+                .errorMsg(ex.getErrorCode().getErrorMsg())
+                .build();
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
     private HttpStatus mapToStatus(ErrorCode errorCode) {

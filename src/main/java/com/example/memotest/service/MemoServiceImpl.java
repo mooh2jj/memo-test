@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,8 +55,7 @@ public class MemoServiceImpl implements MemoService{
     @Override
     public Page<MemoResponse> list2(PageRequestDto pageRequestDto) {
 
-        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize(),
-                Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize());
 
         Page<MemoResponse> memoResponsePage = memoRepository.getMemoPage(pageRequestDto, pageable).map(MemoResponse::toDto);
         log.info("memoResponsePage: {}", memoResponsePage);
